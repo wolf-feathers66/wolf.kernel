@@ -1,8 +1,8 @@
 VERSION = 3
 PATCHLEVEL = 3
-SUBLEVEL = 0
+SUBLEVEL = 4
 EXTRAVERSION =
-NAME = Cybernetic Cofferfish
+NAME = Wolf Kernel
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
