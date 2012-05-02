@@ -29,6 +29,82 @@ config IRQ_WORK
 
 menu "General setup"
 
+choice
+	prompt "CPU Scheduler"
+	default SCHED_BFS
+	---help---
+	  Select the CPU Scheduler to be used.
+
+config SCHED_BFS
+	bool "Brain Fuck Scheduler (BFS)"
+	---help---
+	  The Brain Fuck CPU Scheduler for excellent interactivity and
+	  responsiveness on the desktop and solid scalability on normal
+          hardware. Not recommended for 4096 CPUs.
+
+	  Currently incompatible with the Group CPU scheduler, and RCU TORTURE
+          TEST so these options are disabled.
+
+          Say Y here.
+
+config SCHED_CFS
+	bool "Completely Fair Scheduler (CFS)"
+	---help---
+	This is the default cpu scheduler found in the upstream kernel.
+endchoice
+
+config SCHED_BFS_AUTOISO
+	bool "Automatically use SCHED_ISO policy for X"
+	depends on SCHED_BFS
+	default n
+	---help---
+	  Selecting this option will automatically use the SCHED_ISO scheduling
+	  policy for X, resulting in an interactivity boost. This *may* cause
+	  things like skipping sound on audio applications that are not run
+	  as SCHED_ISO.
+
+	  Tasks (including X) can be run as sched_iso manually using schedtool.
+
+
+choice
+	prompt "Zen-Tune Profile"
+	default ZEN_CUSTOM
+	---help---
+	  Select the tunable profile to be used.
+
+config ZEN_DEFAULT
+	bool "Default"
+	---help---
+	  This option sets tunables to default.
+
+	    DIRTY_RATIO: 1
+	    BACKGROUND_DIRTY_RATIO: 10
+	   *BFS ONLY*
+	    ISO_CPU: 70
+	    RR_INTERVAL: 6
+	   *CFS ONLY*
+	    SCHED LATENCY: 6 ms
+	    SCHED LATENCY GRANULARITY: 0.75 ms
+
+
+config ZEN_CUSTOM
+	bool "Custom"
+	---help---
+	  This option sets tunables to optimal desktop values.
+	  Changes to these values can be adjusted in include/linux/zentune.h
+
+	    DIRTY_RATIO: 50
+	    BACKGROUND_DIRTY_RATIO: 20
+	   *BFS ONLY*
+	    ISO_CPU: 25
+	    RR_INTERVAL: 3
+	   *CFS ONLY*
+	    SCHED LATENCY: 3 ms
+	    SCHED LATENCY GRANULARITY: 0.3 ms
+
+
+endchoice
+
 config EXPERIMENTAL
 	bool "Prompt for development and/or incomplete code/drivers"
 	---help---
@@ -640,6 +716,7 @@ config PROC_PID_CPUSET
 
 config CGROUP_CPUACCT
 	bool "Simple CPU accounting cgroup subsystem"
+	depends on !SCHED_BFS
 	help
 	  Provides a simple Resource Controller for monitoring the
 	  total CPU consumed by the tasks in a cgroup.
@@ -672,6 +749,14 @@ config CGROUP_MEM_RES_CTLR
 
 	  This config option also selects MM_OWNER config option, which
 	  could in turn add some fork/exit overhead.
+
+config CGROUP_MEM_RES_CTLR_DISABLED
+	bool "Memory Resource Controller disabled by default"
+	depends on CGROUP_MEM_RES_CTLR
+	default n
+	help
+	  Disable the memory group resource controller unless explicitly
+	  enabled using the kernel parameter "cgroup_enable=memory".
 
 config CGROUP_MEM_RES_CTLR_SWAP
 	bool "Memory Resource Controller Swap Extension"
@@ -727,6 +812,7 @@ config CGROUP_PERF
 
 menuconfig CGROUP_SCHED
 	bool "Group CPU scheduler"
+	depends on !SCHED_BFS
 	default n
 	help
 	  This feature lets CPU scheduler recognize task groups and control CPU
@@ -863,6 +949,7 @@ endif # NAMESPACES
 
 config SCHED_AUTOGROUP
 	bool "Automatic process group scheduling"
+	depends on !SCHED_BFS
 	select EVENTFD
 	select CGROUPS
 	select CGROUP_SCHED
